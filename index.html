@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Refrigerator</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .item { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Smart Refrigerator</h1>
+    <h2>Add Item</h2>
+    <input type="text" id="name" placeholder="Name">
+    <input type="date" id="expiration_date">
+    <button onclick="addItem()">Add Item</button>
+    <h2>Contents</h2>
+    <div id="contents"></div>
+
+    <script>
+        async function fetchItems() {
+            const response = await fetch('/items');
+            const items = await response.json();
+            const contentsDiv = document.getElementById('contents');
+            contentsDiv.innerHTML = '';
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.textContent = `${item.name} (expires on ${new Date(item.expiration_date).toDateString()})`;
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = () => deleteItem(item.name);
+                div.appendChild(deleteButton);
+                contentsDiv.appendChild(div);
+            });
+        }
+
+        async function addItem() {
+            const name = document.getElementById('name').value;
+            const expiration_date = document.getElementById('expiration_date').value;
+            await fetch('/items', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, expiration_date })
+            });
+            fetchItems();
+        }
+
+        async function deleteItem(name) {
+            await fetch(`/items/${name}`, { method: 'DELETE' });
+            fetchItems();
+        }
+
+        fetchItems();
+    </script>
+</body>
+</html>
